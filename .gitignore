@@ -1,0 +1,81 @@
+# Root .gitignore for Novak.Net
+
+# macOS
+.DS_Store
+.AppleDouble
+._*
+
+# Node/npm (if any front-end tooling is added later)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Visual Studio / Rider / VSCode
+.idea/
+.idea/*
+*.sln.iml
+*.ipr
+*.iws
+.vscode/
+
+# Rider and JetBrains
+*.DotSettings.user
+*.sln.DotSettings
+
+# Build outputs
+**/bin/
+**/obj/
+**/out/
+artifacts/
+publish/
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+.nuget/
+project.lock.json
+project.fragment.lock.json
+
+# dotnet
+*.user
+*.userosscache
+*.suo
+*.vsp
+*.dbmdl
+*.cache
+
+# VS Code workspace state
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Test results
+TestResults/
+coverage/
+coverage*.xml
+*.coverage
+
+# Logs
+*.log
+
+# Rider caches
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/shelf
+.idea/**/gradle.xml
+.idea/**/dictionaries
+
+# OS generated files
+*.tmp
+*~
+
+# Secrets and local config
+secrets.json
+local.settings.json
+
+# Ignore user-specific and temporary files
+*.bak
+*.swp
+

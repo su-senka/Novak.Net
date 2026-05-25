@@ -1,0 +1,10 @@
+using Novak.Net.PhoneNumbers.Models;
+using Novak.Net.PhoneNumbers.Options;
+
+namespace Novak.Net.PhoneNumbers;
+
+public interface IPhoneNumberGenerator
+{
+    PhoneNumber GeneratePhoneNumber(PhoneNumberGeneratorOptions? options = null);
+}
+

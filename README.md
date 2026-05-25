@@ -2,26 +2,40 @@
 
 A .NET library for generating synthetic Czech personal data — names, emails, and phone numbers — for use in testing, seeding databases, and demo applications.
 
+## Repository structure
+
+- `src/` - modular packages (`Novak.Net`, `Novak.Net.Common`, `Novak.Net.Names`, `Novak.Net.Emails`, `Novak.Net.PhoneNumbers`, and placeholders for planned modules)
+- `tests/` - xUnit test projects (split by module)
+- `docs/` - module documentation
+
 ## Quick start
 
-The simplest entry point is `NovakNetClient`, which wires up all generators automatically:
+The simplest entry point is `NovakClient` (or `NovakNetClient` compatibility alias), which wires up all implemented generators automatically:
 
 ```csharp
-using Novak.Net.Core;
+using Novak.Net;
 
-var client = new NovakNetClient();
+var client = new NovakClient();
 
 var name  = client.Names.GenerateFullName();
 var email = client.Emails.GenerateEmail();
 var phone = client.PhoneNumbers.GeneratePhoneNumber();
 ```
 
+## Runnable sample
+
+A console sample is available in `samples/Novak.Net.Sample/`.
+
+```bash
+dotnet run --project ./samples/Novak.Net.Sample/Novak.Net.Sample.csproj -- 42
+```
+
 ## Names
 
 ```csharp
-using Novak.Net.Core.Modules.Names;
-using Novak.Net.Core.Modules.Names.Models;
-using Novak.Net.Core.Modules.Names.Options;
+using Novak.Net.Names;
+using Novak.Net.Names.Models;
+using Novak.Net.Names.Options;
 
 var generator = new NameGenerator(new DataSource());
 
@@ -51,9 +65,9 @@ var names = generator.GenerateMany(
 ## Emails
 
 ```csharp
-using Novak.Net.Core.Modules.Emails;
-using Novak.Net.Core.Modules.Emails.Data;
-using Novak.Net.Core.Modules.Emails.Options;
+using Novak.Net.Emails;
+using Novak.Net.Emails.Data;
+using Novak.Net.Emails.Options;
 
 var generator = new EmailGenerator(new EmbeddedEmailDataRepository());
 var email = generator.GenerateEmail(new EmailGeneratorOptions { Seed = 42 });
@@ -73,9 +87,9 @@ Console.WriteLine(email); // e.g. xk3ab9fz@example.cz
 ## Phone numbers
 
 ```csharp
-using Novak.Net.Core.Modules.PhoneNumbers;
-using Novak.Net.Core.Modules.PhoneNumbers.Data;
-using Novak.Net.Core.Modules.PhoneNumbers.Options;
+using Novak.Net.PhoneNumbers;
+using Novak.Net.PhoneNumbers.Data;
+using Novak.Net.PhoneNumbers.Options;
 
 var generator = new PhoneNumberGenerator(new EmbeddedPhoneNumberDataRepository());
 var phone = generator.GeneratePhoneNumber(new PhoneNumberGeneratorOptions
@@ -98,10 +112,10 @@ Console.WriteLine(phone); // e.g. +420 603 123 456
 
 ## Install
 
-Until published on NuGet, reference the project directly:
+Until published on NuGet, reference the facade project directly:
 
 ```xml
-<ProjectReference Include="../Novak.Net.Core/Novak.Net.Core.csproj" />
+<ProjectReference Include="../src/Novak.Net/Novak.Net.csproj" />
 ```
 
 ## Status
@@ -111,7 +125,7 @@ Until published on NuGet, reference the project directly:
 | Names (first / surname, gender-aware) | ✅ Available |
 | Emails | ✅ Available |
 | Phone numbers (CZ) | ✅ Available |
-| Addresses | 🔜 Planned |
-| Rodné číslo | 🔜 Planned |
-| Bank accounts | 🔜 Planned |
+| Addresses | 🏗️ Placeholder project created |
+| Rodné číslo | 🏗️ Placeholder project created |
+| Bank accounts | 🏗️ Placeholder project created |
 

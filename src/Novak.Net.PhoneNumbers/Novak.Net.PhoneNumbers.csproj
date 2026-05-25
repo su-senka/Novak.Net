@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Description>Phone number generation module for Czech synthetic personal data.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Novak.Net.Common/Novak.Net.Common.csproj" />
+  </ItemGroup>
+</Project>

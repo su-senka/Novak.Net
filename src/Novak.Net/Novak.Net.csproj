@@ -9,10 +9,11 @@
     <ProjectReference Include="../Novak.Net.Names/Novak.Net.Names.csproj" />
     <ProjectReference Include="../Novak.Net.Emails/Novak.Net.Emails.csproj" />
     <ProjectReference Include="../Novak.Net.PhoneNumbers/Novak.Net.PhoneNumbers.csproj" />
+    <ProjectReference Include="../Novak.Net.RodneCislo/Novak.Net.RodneCislo.csproj" />
+    <ProjectReference Include="../Novak.Net.BankAccounts/Novak.Net.BankAccounts.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include="../../README.md" Pack="true" PackagePath="/" Link="README.md" />
   </ItemGroup>
 </Project>
-

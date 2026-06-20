@@ -17,9 +17,14 @@ using Novak.Net;
 
 var client = new NovakClient();
 
-var name  = client.Names.GenerateFullName();
-var email = client.Emails.GenerateEmail();
-var phone = client.PhoneNumbers.GeneratePhoneNumber();
+var name    = client.Names.GenerateFullName();
+var email   = client.Emails.GenerateEmail();
+var phone   = client.PhoneNumbers.GeneratePhoneNumber();
+var rc      = client.RodneCislo.Generate();
+var account = client.BankAccounts.GenerateBankAccount();
+
+Console.WriteLine(account);          // e.g. 2253325080/6700
+Console.WriteLine(account.ToIban()); // e.g. CZ4767000000002253325080
 ```
 
 ## Runnable sample
@@ -110,6 +115,66 @@ Console.WriteLine(phone); // e.g. +420 603 123 456
 | `MobileOnly` | `bool` | `true` | Restrict to mobile prefixes |
 | `CountryCode` | `string?` | `null` | Override country code (e.g. `"420"`) |
 
+## Rodné číslo
+
+```csharp
+using Novak.Net.RodneCislo;
+using Novak.Net.RodneCislo.Models;
+using Novak.Net.RodneCislo.Options;
+
+var generator = new RodneCisloGenerator();
+var rc = generator.Generate(new RodneCisloGeneratorOptions
+{
+    Seed   = 42,
+    Gender = Gender.Female,
+});
+
+Console.WriteLine(rc);        // e.g. 845204/5228
+Console.WriteLine(rc.Digits); // without slash: 8452045228
+
+// Validate any string
+bool ok = RodneCisloGenerator.Validate("845204/5228");
+```
+
+### `RodneCisloGeneratorOptions`
+
+| Property | Type | Default | Description |
+|---|---|---|---|
+| `Seed` | `int?` | `null` | Fixed seed for deterministic output |
+| `Gender` | `Gender` | `Any` | `Male`, `Female`, or `Any` |
+| `MinYear` | `int?` | `1940` | Minimum birth year (inclusive) |
+| `MaxYear` | `int?` | `2005` | Maximum birth year (inclusive) |
+| `Format` | `RodneCisloFormat` | `WithSlash` | `WithSlash` or `WithoutSlash` |
+
+## Bank accounts
+
+```csharp
+using Novak.Net.BankAccounts;
+using Novak.Net.BankAccounts.Data;
+using Novak.Net.BankAccounts.Options;
+
+var generator = new BankAccountGenerator(new EmbeddedBankAccountDataRepository());
+var account = generator.GenerateBankAccount(new BankAccountGeneratorOptions
+{
+    Seed       = 42,
+    WithPrefix = false,
+});
+
+Console.WriteLine(account);          // e.g. 2253325080/6700
+Console.WriteLine(account.ToIban()); // e.g. CZ4767000000002253325080
+
+// Validate any string
+bool ok = BankAccountGenerator.Validate("19-2000145399/0800");
+```
+
+### `BankAccountGeneratorOptions`
+
+| Property | Type | Default | Description |
+|---|---|---|---|
+| `Seed` | `int?` | `null` | Fixed seed for deterministic output |
+| `BankCode` | `string?` | `null` | Override bank code (e.g. `"0800"`). Random when null. |
+| `WithPrefix` | `bool?` | `null` | `true` = always prefix; `false` = no prefix; `null` = random |
+
 ## Install
 
 Until published on NuGet, reference the facade project directly:
@@ -126,6 +191,6 @@ Until published on NuGet, reference the facade project directly:
 | Emails | ✅ Available |
 | Phone numbers (CZ) | ✅ Available |
 | Addresses | 🏗️ Placeholder project created |
-| Rodné číslo | 🏗️ Placeholder project created |
-| Bank accounts | 🏗️ Placeholder project created |
+| Rodné číslo | ✅ Available |
+| Bank accounts | ✅ Available |
 

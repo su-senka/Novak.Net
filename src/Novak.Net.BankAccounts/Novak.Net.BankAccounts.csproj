@@ -1,11 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <IsPackable>false</IsPackable>
-    <Description>Placeholder package for future bank account generation module.</Description>
+    <Description>Czech bank account generation module for Novak.Net.</Description>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="../Novak.Net.Common/Novak.Net.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Data/*.csv" />
   </ItemGroup>
 </Project>

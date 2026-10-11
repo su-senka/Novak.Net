@@ -1,9 +1,8 @@
-using System.Collections.Generic;
-
 namespace Novak.Net.Emails;
 
+/// <summary>Provides the pool of e-mail domains.</summary>
 public interface IEmailDataRepository
 {
-    IReadOnlyList<string> GetEmailDomains(string? region);
+    /// <summary>Domains with relative weights.</summary>
+    IReadOnlyList<(string Domain, double Weight)> GetEmailDomains();
 }
-

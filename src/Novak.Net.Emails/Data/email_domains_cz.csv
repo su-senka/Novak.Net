@@ -1,0 +1,15 @@
+# Free-mail domains used by Czech consumers. Weight = rough relative popularity (sums to ~100).
+domain,weight
+seznam.cz,34
+gmail.com,30
+email.cz,10
+centrum.cz,6
+post.cz,4
+volny.cz,3
+outlook.com,3
+atlas.cz,2
+icloud.com,2
+tiscali.cz,1
+quick.cz,1
+hotmail.com,1
+outlook.cz,1

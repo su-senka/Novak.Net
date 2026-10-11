@@ -1,10 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <Description>Email generation module for Czech synthetic personal data.</Description>
+    <Description>Realistic Czech e-mail addresses (jan.novak@seznam.cz) derived from Czech names, with an opt-in safe mode using reserved example domains.</Description>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="../Novak.Net.Common/Novak.Net.Common.csproj" />
+    <ProjectReference Include="../Novak.Net.Names/Novak.Net.Names.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Data/email_domains_cz.csv" />
+    <None Include="../../docs/emails.md" Pack="true" PackagePath="README.md" />
   </ItemGroup>
 </Project>

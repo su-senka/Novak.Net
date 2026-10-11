@@ -1,43 +1,41 @@
-using System;
 using System.Text;
+using Novak.Net.Common.Randomization;
+using Novak.Net.PhoneNumbers.Data;
 using Novak.Net.PhoneNumbers.Models;
 using Novak.Net.PhoneNumbers.Options;
-using Novak.Net.Common.Randomization;
 
 namespace Novak.Net.PhoneNumbers;
 
+/// <summary>Default <see cref="IPhoneNumberGenerator"/> implementation.</summary>
 public class PhoneNumberGenerator : IPhoneNumberGenerator
 {
-    private readonly IPhoneNumberDataRepository _repo;
+    private const int NationalNumberLength = 9;
 
-    public PhoneNumberGenerator(IPhoneNumberDataRepository repo)
+    private readonly IPhoneNumberDataRepository _repo;
+    private readonly IRandom _random;
+
+    /// <param name="repo">Prefix data; defaults to the built-in Czech numbering plan.</param>
+    /// <param name="random">Random source used when options carry no seed.</param>
+    public PhoneNumberGenerator(IPhoneNumberDataRepository? repo = null, IRandom? random = null)
     {
-        _repo = repo ?? throw new ArgumentNullException(nameof(repo));
+        _repo = repo ?? new EmbeddedPhoneNumberDataRepository();
+        _random = random ?? DefaultRandom.Shared;
     }
 
     public PhoneNumber GeneratePhoneNumber(PhoneNumberGeneratorOptions? options = null)
     {
         options ??= new PhoneNumberGeneratorOptions();
-        var rng = DefaultRandom.Create(options.Seed);
-        var country = options.CountryCode ?? _repo.GetCountryCode(options.Region);
-        if (string.IsNullOrWhiteSpace(country))
-            throw new InvalidOperationException("No country code available.");
-        var prefixes = _repo.GetPhonePrefixes(options.Region, options.MobileOnly);
-        if (prefixes is null || prefixes.Count == 0)
-            throw new InvalidOperationException("No phone prefixes available.");
-        var prefix = prefixes[rng.Next(prefixes.Count)];
+        var rng = _random.For(options);
 
-        int remaining = Math.Max(0, 9 - prefix.Length);
-        var sb = new StringBuilder(prefix);
-        for (int i = 0; i < remaining; i++) sb.Append(rng.Next(10));
-        var nsn = sb.ToString();
+        var type = options.Type ?? (rng.Chance(0.85) ? PhoneNumberType.Mobile : PhoneNumberType.Landline);
+        var prefixes = _repo.GetPhonePrefixes().Where(p => p.Type == type).ToList();
+        if (prefixes.Count == 0)
+            throw new InvalidOperationException($"No {type} phone prefixes available.");
+        var prefix = rng.PickWeighted(prefixes, p => p.Weight).Prefix;
 
-        return options.Format switch
-        {
-            PhoneNumberFormat.E164   => new PhoneNumber($"+{country}{nsn}"),
-            PhoneNumberFormat.Plain  => new PhoneNumber($"{country}{nsn}"),
-            PhoneNumberFormat.Spaced => new PhoneNumber($"+{country} {nsn[..3]} {nsn[3..6]} {nsn[6..]}"),
-            _                        => new PhoneNumber($"+{country}{nsn}")
-        };
+        var sb = new StringBuilder(prefix, NationalNumberLength);
+        while (sb.Length < NationalNumberLength) sb.Append((char)('0' + rng.Next(10)));
+
+        return new PhoneNumber(sb.ToString(), type, options.Format);
     }
 }

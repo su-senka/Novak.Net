@@ -1,0 +1,77 @@
+# Czech national number prefixes (ČTÚ numbering plan). All Czech numbers have 9 digits after +420.
+# type: Mobile = public mobile networks, Landline = geographic numbers; area = where a landline prefix belongs.
+# weight: rough share among generated numbers of the same type.
+prefix,type,area,weight
+601,Mobile,,4
+602,Mobile,,4
+603,Mobile,,4
+604,Mobile,,4
+605,Mobile,,4
+606,Mobile,,4
+607,Mobile,,4
+608,Mobile,,4
+720,Mobile,,2.5
+721,Mobile,,2.5
+722,Mobile,,2.5
+723,Mobile,,2.5
+724,Mobile,,2.5
+725,Mobile,,2.5
+726,Mobile,,2.5
+727,Mobile,,2.5
+728,Mobile,,2.5
+729,Mobile,,2.5
+730,Mobile,,2.5
+731,Mobile,,2.5
+732,Mobile,,2.5
+733,Mobile,,2.5
+734,Mobile,,2.5
+735,Mobile,,2.5
+736,Mobile,,2.5
+737,Mobile,,2.5
+738,Mobile,,2.5
+739,Mobile,,2.5
+770,Mobile,,2
+771,Mobile,,2
+772,Mobile,,2
+773,Mobile,,2
+774,Mobile,,2
+775,Mobile,,2
+776,Mobile,,2
+777,Mobile,,2
+778,Mobile,,2
+779,Mobile,,2
+790,Mobile,,1
+791,Mobile,,1
+792,Mobile,,1
+793,Mobile,,1
+794,Mobile,,1
+795,Mobile,,1
+796,Mobile,,1
+797,Mobile,,1
+798,Mobile,,1
+799,Mobile,,1
+22,Landline,Praha a Středočeský kraj,4.3
+23,Landline,Praha a Středočeský kraj,4.3
+24,Landline,Praha a Středočeský kraj,4.3
+25,Landline,Praha a Středočeský kraj,4.3
+26,Landline,Praha a Středočeský kraj,4.3
+27,Landline,Praha a Středočeský kraj,4.3
+28,Landline,Praha a Středočeský kraj,4.3
+31,Landline,Středočeský kraj,5
+32,Landline,Středočeský kraj,5
+35,Landline,Karlovarský kraj,3
+37,Landline,Plzeňský kraj,5
+38,Landline,Jihočeský kraj,6
+41,Landline,Ústecký kraj,4
+47,Landline,Ústecký kraj,4
+48,Landline,Liberecký kraj,4
+46,Landline,Pardubický kraj,5
+49,Landline,Královéhradecký kraj,5
+51,Landline,Jihomoravský kraj,4
+53,Landline,Jihomoravský kraj,4
+54,Landline,Jihomoravský kraj,6
+56,Landline,Kraj Vysočina,5
+57,Landline,Zlínský kraj,6
+58,Landline,Olomoucký kraj,6
+55,Landline,Moravskoslezský kraj,5
+59,Landline,Moravskoslezský kraj,7

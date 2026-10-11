@@ -1,14 +1,31 @@
 using Novak.Net.Common.Options;
+using Novak.Net.PhoneNumbers.Models;
 
 namespace Novak.Net.PhoneNumbers.Options;
 
-public enum PhoneNumberFormat { E164, Plain, Spaced }
+/// <summary>Output format of a phone number.</summary>
+public enum PhoneNumberFormat
+{
+    /// <summary>+420603123456</summary>
+    E164,
 
-public sealed class PhoneNumberGeneratorOptions : ISeededOptions, IRegionalOptions
+    /// <summary>+420 603 123 456</summary>
+    International,
+
+    /// <summary>603 123 456</summary>
+    National,
+
+    /// <summary>603123456</summary>
+    Compact
+}
+
+/// <summary>Options for <see cref="PhoneNumberGenerator"/>.</summary>
+public sealed class PhoneNumberGeneratorOptions : ISeededOptions
 {
     public int? Seed { get; init; }
-    public string? Region { get; init; }
+
     public PhoneNumberFormat Format { get; init; } = PhoneNumberFormat.E164;
-    public bool MobileOnly { get; init; } = true;
-    public string? CountryCode { get; init; }
+
+    /// <summary>Mobile (default) or landline. Null picks either, roughly 85 % mobile like real contact data.</summary>
+    public PhoneNumberType? Type { get; init; } = PhoneNumberType.Mobile;
 }

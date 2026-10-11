@@ -1,10 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <Description>Phone number generation module for Czech synthetic personal data.</Description>
+    <Description>Czech phone numbers (+420) from the real mobile and geographic number ranges of the ČTÚ numbering plan.</Description>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="../Novak.Net.Common/Novak.Net.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Data/phone_prefixes_cz.csv" />
+    <None Include="../../docs/phone-numbers.md" Pack="true" PackagePath="README.md" />
   </ItemGroup>
 </Project>

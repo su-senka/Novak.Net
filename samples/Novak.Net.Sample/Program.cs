@@ -26,7 +26,7 @@ var email = client.Emails.GenerateEmail(new EmailGeneratorOptions
 var phone = client.PhoneNumbers.GeneratePhoneNumber(new PhoneNumberGeneratorOptions
 {
     Seed = seed,
-    Format = PhoneNumberFormat.Spaced
+    Format = PhoneNumberFormat.International
 });
 
 var rodneCislo = client.RodneCislo.Generate(new RodneCisloGeneratorOptions

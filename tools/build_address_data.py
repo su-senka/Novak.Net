@@ -1,0 +1,113 @@
+#!/usr/bin/env python3
+"""
+Builds src/Novak.Net.Addresses/Data/addresses_cz.tsv.gz from the official RÚIAN open-data export.
+
+Source: ČÚZK – Registr územní identifikace, adres a nemovitostí (RÚIAN), CC BY 4.0
+  https://vdp.cuzk.gov.cz/vymenny_format/csv/<YYYYMMDD>_OB_ADR_csv.zip      (address points per municipality)
+  https://vdp.cuzk.gov.cz/vymenny_format/csv/<YYYYMMDD>_strukt_ADR.csv.zip  (municipality -> region links)
+
+Usage:
+  python3 tools/build_address_data.py <dir with unpacked CSV/ and strukturovane-CSV/> [sample_size] [seed]
+
+Only residential-style address points (číslo popisné) are kept; recreational ones (číslo evidenční) are skipped.
+Address points are sampled with probability proportional to the estimated population of their municipality,
+so big cities appear about as often as their share of inhabitants (Prague ~13 %, Brno ~4 %, ...).
+RÚIAN carries no population figures, so the estimate is: address-point count x a national ratio, with the
+largest cities pinned to their published population (ČSÚ, 1. 1. 2026, rounded).
+"""
+import csv, glob, gzip, os, random, sys
+
+src = sys.argv[1]
+sample_size = int(sys.argv[2]) if len(sys.argv) > 2 else 20000
+seed = int(sys.argv[3]) if len(sys.argv) > 3 else 20260930
+out = os.path.join(os.path.dirname(__file__), "..", "src", "Novak.Net.Addresses", "Data", "addresses_cz.tsv.gz")
+
+# Rounded population of the largest municipalities (ČSÚ). Keyed by RÚIAN municipality code.
+CITY_POPULATION = {
+    554782: 1_390_000,  # Praha
+    582786: 402_000,    # Brno
+    554821: 283_000,    # Ostrava
+    554791: 186_000,    # Plzeň
+    563889: 105_000,    # Liberec
+    500496: 102_000,    # Olomouc
+    544256: 97_000,     # České Budějovice
+    569810: 93_000,     # Hradec Králové
+    555134: 92_000,     # Pardubice
+    554804: 91_000,     # Ústí nad Labem
+    585068: 74_000,     # Zlín
+    532053: 69_000,     # Kladno
+    555088: 70_000,     # Havířov
+    567027: 63_000,     # Most
+    505927: 56_000,     # Opava
+    586846: 54_000,     # Jihlava
+    598003: 55_000,     # Frýdek-Místek
+    598917: 50_000,     # Karviná
+    567442: 50_000,     # Teplice
+    554961: 48_000,     # Karlovy Vary
+    562335: 48_000,     # Děčín
+    562971: 47_000,     # Chomutov
+    563510: 46_000,     # Jablonec nad Nisou
+    535419: 46_000,     # Mladá Boleslav
+    589250: 44_000,     # Prostějov
+    511382: 41_000,     # Přerov
+}
+
+region_by_obec = {}
+with open(os.path.join(src, "strukturovane-CSV", "vazby-cr.csv"), encoding="cp1250") as f:
+    for row in csv.DictReader(f, delimiter=";"):
+        region_by_obec[int(row["OBEC_KOD"])] = int(row["VUSC_KOD"])
+
+rows_by_obec = {}
+for path in sorted(glob.glob(os.path.join(src, "CSV", "*_ADR.csv"))):
+    with open(path, encoding="cp1250") as f:
+        r = csv.reader(f, delimiter=";")
+        next(r)
+        for c in r:
+            if c[11] != "č.p.":
+                continue
+            obec_code = int(c[1])
+            rows_by_obec.setdefault(obec_code, []).append((
+                region_by_obec[obec_code],  # kraj (VÚSC code)
+                c[2],                       # obec
+                c[4],                       # MOMC (city district, e.g. "Brno-střed")
+                c[6],                       # Prague postal district ("Praha 5")
+                c[8],                       # část obce
+                c[10],                      # ulice
+                c[12],                      # číslo popisné
+                c[13],                      # číslo orientační
+                c[14],                      # znak čísla orientačního
+                c[15],                      # PSČ
+            ))
+
+total_points = sum(len(v) for v in rows_by_obec.values())
+pinned_points = sum(len(rows_by_obec.get(k, [])) for k in CITY_POPULATION)
+rest_population = 10_900_000 - sum(CITY_POPULATION.values())
+ratio = rest_population / (total_points - pinned_points)
+print(f"{total_points} address points in {len(rows_by_obec)} municipalities; persons/point outside big cities = {ratio:.2f}")
+
+population = {k: CITY_POPULATION.get(k, len(v) * ratio) for k, v in rows_by_obec.items()}
+total_population = sum(population.values())
+
+# Allocate the sample per municipality (largest remainder), then pick points uniformly inside each.
+rng = random.Random(seed)
+quotas = {k: sample_size * p / total_population for k, p in population.items()}
+alloc = {k: int(q) for k, q in quotas.items()}
+missing = sample_size - sum(alloc.values())
+for k in sorted(quotas, key=lambda k: (quotas[k] - alloc[k], rng.random()), reverse=True)[:missing]:
+    alloc[k] += 1
+
+sample = []
+for k, n in alloc.items():
+    pts = rows_by_obec[k]
+    sample.extend(rng.sample(pts, min(n, len(pts))))
+sample.sort(key=lambda r: (r[0], r[1], r[4], r[5], int(r[6])))
+
+with gzip.open(out, "wt", encoding="utf-8", newline="\n", compresslevel=9) as f:
+    f.write("# Sample of RÚIAN address points (č.p.), (c) ČÚZK, CC BY 4.0. Generated by tools/build_address_data.py\n")
+    f.write("# kraj\tobec\tmomc\tpraha\tcast_obce\tulice\tcp\tco\tco_znak\tpsc\n")
+    for r in sample:
+        f.write("\t".join(map(str, r)) + "\n")
+
+print(f"wrote {len(sample)} addresses to {os.path.normpath(out)} ({os.path.getsize(out)} bytes)")
+prague = sum(1 for r in sample if r[1] == "Praha")
+print(f"Praha share: {prague / len(sample):.1%}; municipalities covered: {sum(1 for v in alloc.values() if v)}")

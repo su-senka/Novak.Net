@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../../src/Novak.Net.Addresses/Novak.Net.Addresses.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,11 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <IsPackable>false</IsPackable>
-    <Description>Placeholder package for future address generation module.</Description>
+    <Description>Real Czech postal addresses sampled from the official RÚIAN register (ČÚZK, CC BY 4.0), weighted by population, filterable by region and city.</Description>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="../Novak.Net.Common/Novak.Net.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Data/addresses_cz.tsv.gz" />
+    <None Include="../../docs/addresses.md" Pack="true" PackagePath="README.md" />
   </ItemGroup>
 </Project>

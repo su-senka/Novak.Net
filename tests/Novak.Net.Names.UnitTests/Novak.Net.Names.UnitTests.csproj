@@ -1,12 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="TUnit" />
-  </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="../../src/Novak.Net.Names/Novak.Net.Names.csproj" />
   </ItemGroup>

@@ -79,3 +79,6 @@ local.settings.json
 *.bak
 *.swp
 
+
+# Python
+__pycache__/

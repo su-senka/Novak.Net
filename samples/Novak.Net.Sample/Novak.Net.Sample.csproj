@@ -8,4 +8,3 @@
     <ProjectReference Include="../../src/Novak.Net/Novak.Net.csproj" />
   </ItemGroup>
 </Project>
-

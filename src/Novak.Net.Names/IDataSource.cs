@@ -1,25 +1,16 @@
-using System.Collections.Generic;
 using Novak.Net.Names.Models;
 using Novak.Net.Names.Options;
 
 namespace Novak.Net.Names;
 
 /// <summary>
-/// Provides filtered pools of names. Implementations may prefilter efficiently.
+/// Provides pools of names to sample from. Implement it to use your own name lists.
 /// </summary>
 public interface IDataSource
 {
-    /// <summary>
-    /// Get a filtered pool of first names honoring options such as Gender and Region.
-    /// </summary>
-    /// <param name="options">The options to filter the first names.</param>
-    /// <returns>A filtered list of first names.</returns>
+    /// <summary>First names, already filtered by <see cref="NameGeneratorOptions.Gender"/> when it is not Any.</summary>
     IReadOnlyList<NameRecord> GetFirstNames(NameGeneratorOptions options);
 
-    /// <summary>
-    /// Get a filtered pool of surnames honoring options such as Region.
-    /// </summary>
-    /// <param name="options">The options to filter the surnames.</param>
-    /// <returns>A filtered list of surnames.</returns>
+    /// <summary>Surnames in their masculine form, ideally with <see cref="NameRecord.FeminineForm"/> filled in.</summary>
     IReadOnlyList<NameRecord> GetSurnames(NameGeneratorOptions options);
 }

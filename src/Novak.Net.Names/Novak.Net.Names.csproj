@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <Description>Name generation module for Czech synthetic personal data.</Description>
+    <Description>Realistic Czech first names and surnames with correct feminine surname forms (Novák → Nováková), weighted by real-world frequency.</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -9,6 +8,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Data/*.csv" />
+    <EmbeddedResource Include="Data/first_names_cz.csv" />
+    <EmbeddedResource Include="Data/surnames_cz.csv" />
+    <None Include="../../docs/names.md" Pack="true" PackagePath="README.md" />
   </ItemGroup>
 </Project>

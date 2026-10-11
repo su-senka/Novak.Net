@@ -1,17 +1,6 @@
-# Rodné číslo module (`src/Novak.Net.RodneCislo`)
+# Novak.Net.RodneCislo
 
-Status: available.
-
-## Overview
-
-Generates structurally valid Czech birth numbers (rodná čísla) following the official CNB / Ministry of Interior format:
-
-- **Pre-1954 births**: 9-digit format `YYMMDD/XXX` — no checksum.
-- **1954+ births**: 10-digit format `YYMMDD/XXXC` — the full 10-digit number is divisible by 11.
-- **Female encoding**: month is increased by 50 (e.g. February → 52).
-- **Slash separator**: optional via `Format` option.
-
-## Quick start
+Valid Czech birth numbers (*rodné číslo*), with a strict validator and parser.
 
 ```csharp
 using Novak.Net.RodneCislo;
@@ -20,35 +9,32 @@ using Novak.Net.RodneCislo.Options;
 
 var generator = new RodneCisloGenerator();
 
-var rc = generator.Generate(new RodneCisloGeneratorOptions
-{
-    Seed   = 42,
-    Gender = Gender.Female,
-});
+var rc = generator.Generate(new() { Gender = Gender.Female, BirthDate = new DateOnly(1985, 2, 28) });
+rc.Value;      // "855228/2486"
+rc.Digits;     // "8552282486"
+rc.BirthDate;  // 1985-02-28
+rc.Gender;     // Female
 
-Console.WriteLine(rc);        // e.g. 845204/5228
-Console.WriteLine(rc.Digits); // without slash: 8452045228
+RodneCisloGenerator.Validate("736028/5163");          // true
+RodneCislo.TryParse("736028/5163", out var parsed);   // parsed.BirthDate == 1973-10-28
 ```
+
+## Rules
+
+- Format `YYMMDD/SSSC`. Births before 1954 have 9 digits (`YYMMDD/SSS`) and no check digit.
+- From 1954 on, the 10-digit number is divisible by 11. A check digit of `0` for remainder 10 was allowed until 1985.
+  The validator accepts it, and the generator never produces it.
+- Women have 50 added to the month. Since 2004, a further +20 is allowed when serial numbers run out. The validator
+  accepts it, and the generator doesn't need it.
+- The validator checks the actual calendar date, so 30 February is rejected.
+- Years 1900–2053 are supported.
 
 ## Options (`RodneCisloGeneratorOptions`)
 
-| Property | Type | Default | Description |
-|---|---|---|---|
-| `Seed` | `int?` | `null` | Fixed seed for deterministic output |
-| `Gender` | `Gender` | `Any` | `Male`, `Female`, or `Any` |
-| `MinYear` | `int?` | `1940` | Minimum birth year (inclusive) |
-| `MaxYear` | `int?` | `2005` | Maximum birth year (inclusive) |
-| `Format` | `RodneCisloFormat` | `WithSlash` | `WithSlash` or `WithoutSlash` |
-
-## Validation
-
-```csharp
-bool ok = RodneCisloGenerator.Validate("845204/5228"); // true
-bool bad = RodneCisloGenerator.Validate("8006154281"); // false — wrong check digit
-```
-
-`Validate` checks:
-1. Length is 9 or 10 digits (ignoring `/` and spaces).
-2. Month encodes a value 1–12 (accounting for female offset).
-3. Day is 1–31.
-4. For 10-digit numbers: the value is divisible by 11.
+| Property | Default | Description |
+|---|---|---|
+| `Seed` | `null` | Fixed seed for this call |
+| `Gender` | `Any` | `Male`, `Female`, or random |
+| `BirthDate` | `null` | Exact date to encode. Overrides the year range. |
+| `MinYear` / `MaxYear` | `1940` / `2005` | Birth year range for a random date |
+| `Format` | `WithSlash` | `WithSlash` or `WithoutSlash` |

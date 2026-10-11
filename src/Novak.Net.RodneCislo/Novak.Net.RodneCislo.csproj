@@ -1,10 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <Description>Czech birth number (rodné číslo) generation module for Novak.Net.</Description>
+    <Description>Valid Czech birth numbers (rodné číslo) for a given gender and birth date, plus a strict validator/parser.</Description>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="../Novak.Net.Common/Novak.Net.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../../docs/rodne-cislo.md" Pack="true" PackagePath="README.md" />
   </ItemGroup>
 </Project>

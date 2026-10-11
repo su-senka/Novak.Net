@@ -1,100 +1,79 @@
-using System;
-using System.Linq;
 using Novak.Net.Common.Randomization;
 using Novak.Net.RodneCislo.Models;
 using Novak.Net.RodneCislo.Options;
 
 namespace Novak.Net.RodneCislo;
 
+/// <summary>
+/// Generates valid Czech birth numbers: 9 digits for births before 1954, otherwise 10 digits divisible by 11.
+/// Women have 50 added to the month.
+/// </summary>
 public class RodneCisloGenerator : IRodneCisloGenerator
 {
+    private const int MinSupportedYear = 1900;
+    private const int MaxSupportedYear = 2053;
+
+    private readonly IRandom _random;
+
+    /// <param name="random">Random source used when options carry no seed.</param>
+    public RodneCisloGenerator(IRandom? random = null)
+    {
+        _random = random ?? DefaultRandom.Shared;
+    }
+
     public Models.RodneCislo Generate(RodneCisloGeneratorOptions? options = null)
     {
         options ??= new RodneCisloGeneratorOptions();
-        var rng = DefaultRandom.Create(options.Seed);
+        var rng = _random.For(options);
 
-        int minYear = options.MinYear ?? 1940;
-        int maxYear = options.MaxYear ?? 2005;
-        if (minYear > maxYear)
-            throw new ArgumentException("MinYear must be less than or equal to MaxYear.");
+        var date = options.BirthDate ?? RandomDate(options, rng);
+        if (date.Year is < MinSupportedYear or > MaxSupportedYear)
+            throw new ArgumentOutOfRangeException(nameof(options), $"Birth year must be between {MinSupportedYear} and {MaxSupportedYear}.");
 
-        int year = rng.Next(minYear, maxYear + 1);
-        int yy = year % 100;
-
-        bool isFemale = options.Gender switch
+        bool female = options.Gender switch
         {
             Gender.Female => true,
-            Gender.Male   => false,
-            _              => rng.Next(2) == 0
+            Gender.Male => false,
+            _ => rng.Chance(0.5)
         };
 
-        int month = rng.Next(1, 13);
-        int daysInMonth = DateTime.DaysInMonth(year, month);
-        int day = rng.Next(1, daysInMonth + 1);
-
-        // Female: month + 50; when all sequences exhausted (rare edge case), month + 70 — not needed for generation
-        int encodedMonth = isFemale ? month + 50 : month;
-
+        string head = $"{date.Year % 100:D2}{date.Month + (female ? 50 : 0):D2}{date.Day:D2}";
         string digits;
-        if (year < 1954)
+        if (date.Year < 1954)
         {
-            int seq = rng.Next(0, 1000);
-            digits = $"{yy:D2}{encodedMonth:D2}{day:D2}{seq:D3}";
+            digits = $"{head}{rng.Next(1000):D3}";
         }
         else
         {
-            // 10-digit format: full number must be divisible by 11.
-            // First 9 digits are YYMMDDXXX; check digit d satisfies (n9*10 + d) % 11 == 0.
-            int seq;
-            int checkDigit;
+            // Pick a serial whose 9-digit prefix leaves a remainder < 10; that remainder is the check digit.
+            long first9;
+            int remainder;
             do
             {
-                seq = rng.Next(0, 1000);
-                // Shift n9 one decimal place left, then find the digit that makes the result divisible by 11.
-                long n9 = long.Parse($"{yy:D2}{encodedMonth:D2}{day:D2}{seq:D3}");
-                checkDigit = (int)((11 - (n9 * 10 % 11)) % 11);
-                // checkDigit == 10 means no valid single digit can satisfy divisibility — retry with next seq.
-            } while (checkDigit == 10);
-
-            digits = $"{yy:D2}{encodedMonth:D2}{day:D2}{seq:D3}{checkDigit}";
+                first9 = long.Parse($"{head}{rng.Next(1000):D3}");
+                remainder = (int)(first9 % 11);
+            } while (remainder == 10);
+            digits = $"{first9:D9}{remainder}";
         }
 
-        var value = options.Format == RodneCisloFormat.WithoutSlash
-            ? digits
-            : $"{digits[..6]}/{digits[6..]}";
-
+        var value = options.Format == RodneCisloFormat.WithoutSlash ? digits : $"{digits[..6]}/{digits[6..]}";
         return new Models.RodneCislo(value);
     }
 
-    /// <summary>
-    /// Returns true when the given string is a structurally valid Czech birth number.
-    /// </summary>
-    public static bool Validate(string value)
+    /// <summary>Returns true when <paramref name="value"/> is a valid birth number. See <see cref="Models.RodneCislo.IsValid"/>.</summary>
+    public static bool Validate(string? value) => Models.RodneCislo.IsValid(value);
+
+    private static DateOnly RandomDate(RodneCisloGeneratorOptions options, IRandom rng)
     {
-        if (string.IsNullOrWhiteSpace(value)) return false;
-        var digits = value.Replace("/", "").Replace(" ", "");
-        if (digits.Length != 9 && digits.Length != 10) return false;
-        if (!digits.All(char.IsDigit)) return false;
+        int minYear = options.MinYear ?? 1940;
+        int maxYear = options.MaxYear ?? 2005;
+        if (minYear > maxYear)
+            throw new ArgumentException("MinYear must be less than or equal to MaxYear.", nameof(options));
+        if (minYear < MinSupportedYear || maxYear > MaxSupportedYear)
+            throw new ArgumentOutOfRangeException(nameof(options), $"Years must be between {MinSupportedYear} and {MaxSupportedYear}.");
 
-        int mm = int.Parse(digits[2..4]);
-        int dd = int.Parse(digits[4..6]);
-
-        // Decode month: female adds 50, overflow variant adds 20/70
-        int month = mm;
-        if (month > 70) month -= 70;
-        else if (month > 50) month -= 50;
-        else if (month > 20) month -= 20;
-
-        if (month < 1 || month > 12) return false;
-        if (dd < 1 || dd > 31) return false;
-
-        // 10-digit numbers must be divisible by 11 (with rare historical exceptions where the last digit is 0)
-        if (digits.Length == 10)
-        {
-            long n = long.Parse(digits);
-            return n % 11 == 0;
-        }
-
-        return true;
+        var from = new DateOnly(minYear, 1, 1);
+        int days = new DateOnly(maxYear, 12, 31).DayNumber - from.DayNumber + 1;
+        return from.AddDays(rng.Next(days));
     }
 }

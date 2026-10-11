@@ -1,6 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <Description>Shared contracts and randomization primitives for Novak.Net modules.</Description>
+    <Description>Shared randomization primitives and contracts for the Novak.Net Czech test-data generators.</Description>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
 </Project>

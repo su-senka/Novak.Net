@@ -1,38 +1,53 @@
-# Czech bank codes (CNB list, active codes as of 2025)
-# code,name
-0100,Komerční banka
-0300,ČSOB
-0600,Moneta Money Bank
-0710,Česká národní banka
-0800,Česká spořitelna
-2010,Fio banka
-2060,Citfin
-2070,TRINITY BANK
-2100,Hypoteční banka
-2200,Peněžní dům
-2220,Artesa
-2250,OpenBank
-2310,Banka CREDITAS
-2600,Citibank Europe
-2700,UniCredit Bank
-3030,Air Bank
-3050,BNP Paribas Personal Finance
-3500,ING Bank
-5500,Raiffeisenbank
-5800,J&T BANKA
-6000,PPF banka
-6100,Max banka
-6210,mBank
-6300,BNP Paribas
-6700,VÚB
-7910,Deutsche Bank
-7940,Waldviertler Sparkasse
-7950,Raiffeisen stavební spořitelna
-7960,ČSOB Stavební spořitelna
-7970,Wüstenrot - stavební spořitelna
-7980,Wüstenrot hypoteční banka
-7990,Modrá pyramida
-8040,Oberbank AG
-8060,Stavební spořitelna České spořitelny
-8090,Česká exportní banka
-8150,HSBC France
+# Czech payment system codes, source: Česká národní banka, list valid as of 2026-10
+# https://www.cnb.cz/cs/platebni-styk/ucty-kody-bank/
+# weight = rough share of personal current accounts, used to pick banks realistically.
+# Weight 0 = not a retail bank (central bank, building societies, payment institutions, banks in liquidation);
+# such codes are never picked at random but are still valid and can be requested explicitly.
+code;name;bic;weight
+0100;Komerční banka, a.s.;KOMBCZPP;13
+0300;Československá obchodní banka, a. s.;CEKOCZPP;14
+0600;MONETA Money Bank, a.s.;AGBACZPP;8
+0710;ČESKÁ NÁRODNÍ BANKA;CNBACZPP;0
+0800;Česká spořitelna, a.s.;GIBACZPX;24
+2010;Fio banka, a.s.;FIOBCZPP;8
+2060;Citfin, spořitelní družstvo;CITFCZPP;0.1
+2070;TRINITY BANK a.s.;MPUBCZPP;0.5
+2100;ČSOB Hypoteční banka, a.s.;;0
+2200;Peněžní dům, spořitelní družstvo;;0.1
+2220;Artesa, spořitelní družstvo;ARTTCZPP;0.1
+2250;Banka CREDITAS a.s.;CTASCZ22;1.5
+2600;Citibank Europe plc, organizační složka;CITICZPX;0
+2700;UniCredit Bank Czech Republic and Slovakia, a.s.;BACXCZPP;4
+3030;Air Bank a.s.;AIRACZPP;7
+3060;PKO BP S.A., Czech Branch;BPKOCZPP;0.2
+3500;ING Bank N.V.;INGBCZPP;0.1
+4300;Národní rozvojová banka, a.s.;NROZCZPP;0
+5500;Raiffeisenbank a.s.;RZBCCZPP;8
+5800;J&T BANKA, a.s.;JTBPCZPP;0.4
+6000;PPF banka a.s.;PMBPCZPP;0.3
+6200;COMMERZBANK Aktiengesellschaft, pobočka Praha;COBACZPX;0
+6210;mBank S.A., organizační složka;BREXCZPP;4
+6300;BNP Paribas S.A., pobočka Česká republika;GEBACZPP;0
+6363;Partners Banka, a.s.;PTBNCZPP;1.2
+6600;Banking Circle S.A., Czech Republic;;0
+6700;Všeobecná úverová banka a.s., pobočka Praha;SUBACZPP;0
+6800;Sberbank CZ, a.s. v likvidaci;VBOECZ2X;0
+7910;Deutsche Bank Aktiengesellschaft Filiale Prag, organizační složka;DEUTCZPX;0
+7950;Raiffeisen stavební spořitelna a.s.;;0
+7960;ČSOB Stavební spořitelna, a.s.;;0
+7970;MONETA Stavební Spořitelna, a.s.;;0
+7990;Modrá pyramida stavební spořitelna, a.s.;;0
+8030;Volksbank Raiffeisenbank Nordoberpfalz eG pobočka Cheb;GENOCZ21;0
+8040;Oberbank AG pobočka Česká republika;OBKLCZ2X;0
+8060;Stavební spořitelna České spořitelny, a.s.;;0
+8090;Česká exportní banka, a.s.;CZEECZPP;0
+8150;HSBC Continental Europe, Czech Republic;MIDLCZPP;0
+8198;FAS finance company s.r.o.;FFCSCZP1;0
+8220;Payment execution s.r.o.;PAERCZP1;0
+8250;Bank of China (CEE) Ltd. Prague Branch;BKCHCZPP;0
+8255;Bank of Communications Co., Ltd., Prague Branch odštěpný závod;COMMCZPP;0
+8265;Industrial and Commercial Bank of China Limited, Prague Branch, odštěpný závod;ICBKCZPP;0
+8500;Multitude Bank p.l.c.;;0
+8610;Devizová burza a.s.;;0
+8620;Comgate a.s.;;0
+8660;PAYMONT, UAB;;0

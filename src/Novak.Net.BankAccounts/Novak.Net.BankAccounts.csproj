@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <Description>Czech bank account generation module for Novak.Net.</Description>
+    <Description>Valid Czech bank account numbers (CNB mod-11 checksum) with IBAN and BIC, using the official CNB bank code list.</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -9,6 +8,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Data/*.csv" />
+    <EmbeddedResource Include="Data/bank_codes_cz.csv" />
+    <None Include="../../docs/bank-accounts.md" Pack="true" PackagePath="README.md" />
   </ItemGroup>
 </Project>

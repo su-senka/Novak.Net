@@ -1,37 +1,20 @@
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text;
+using System.Globalization;
+using Novak.Net.BankAccounts.Models;
+using Novak.Net.Common.Data;
 
 namespace Novak.Net.BankAccounts.Data;
 
+/// <summary>Built-in CNB list of Czech bank codes with BICs and market-share-based weights.</summary>
 public sealed class EmbeddedBankAccountDataRepository : IBankAccountDataRepository
 {
-    public IReadOnlyList<string> GetBankCodes()
-    {
-        var codes = ReadCsv("bank_codes_cz.csv")
-            .Where(r => r.Length >= 1)
-            .Select(r => r[0].Trim())
-            .ToList();
-        return codes.Count == 0 ? new[] { "0800" } : codes;
-    }
+    private static readonly Lazy<Bank[]> Banks = new(() =>
+        EmbeddedData.ReadRows(typeof(EmbeddedBankAccountDataRepository).Assembly, "bank_codes_cz.csv", ';', hasHeader: true)
+            .Select(r => new Bank(
+                r[0],
+                r[1],
+                string.IsNullOrWhiteSpace(r[2]) ? null : r[2],
+                double.Parse(r[3], CultureInfo.InvariantCulture)))
+            .ToArray());
 
-    private static IEnumerable<string[]> ReadCsv(string fileName)
-    {
-        var asm = Assembly.GetExecutingAssembly();
-        var res = asm.GetManifestResourceNames()
-            .FirstOrDefault(n => n.EndsWith($"BankAccounts.Data.{fileName}", StringComparison.OrdinalIgnoreCase));
-        if (res is null) yield break;
-        using var stream = asm.GetManifestResourceStream(res);
-        if (stream is null) yield break;
-        using var sr = new StreamReader(stream, Encoding.UTF8, true);
-        string? line;
-        while ((line = sr.ReadLine()) != null)
-        {
-            line = line.Trim();
-            if (line.Length == 0 || line.StartsWith("#")) continue;
-            yield return line.Split(',');
-        }
-    }
+    public IReadOnlyList<Bank> GetBanks() => Banks.Value;
 }

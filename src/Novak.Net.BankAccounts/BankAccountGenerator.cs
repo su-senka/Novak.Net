@@ -1,103 +1,80 @@
-using System;
+using Novak.Net.BankAccounts.Data;
 using Novak.Net.BankAccounts.Models;
 using Novak.Net.BankAccounts.Options;
 using Novak.Net.Common.Randomization;
 
 namespace Novak.Net.BankAccounts;
 
+/// <summary>Generates account numbers that pass the CNB weighted mod-11 checksum (Decree 169/2011).</summary>
 public class BankAccountGenerator : IBankAccountGenerator
 {
-    // Weights for a 10-digit account number (left to right). CNB standard.
-    private static readonly int[] AccountWeights = { 6, 3, 7, 9, 10, 5, 8, 4, 2, 1 };
-
-    // Weights for a 6-digit prefix = last 6 of AccountWeights.
-    private static readonly int[] PrefixWeights = { 10, 5, 8, 4, 2, 1 };
-
     private readonly IBankAccountDataRepository _repo;
+    private readonly IRandom _random;
 
-    public BankAccountGenerator(IBankAccountDataRepository repo)
+    /// <param name="repo">Bank list; defaults to the built-in CNB list.</param>
+    /// <param name="random">Random source used when options carry no seed.</param>
+    public BankAccountGenerator(IBankAccountDataRepository? repo = null, IRandom? random = null)
     {
-        _repo = repo ?? throw new ArgumentNullException(nameof(repo));
+        _repo = repo ?? new EmbeddedBankAccountDataRepository();
+        _random = random ?? DefaultRandom.Shared;
     }
 
     public BankAccount GenerateBankAccount(BankAccountGeneratorOptions? options = null)
     {
         options ??= new BankAccountGeneratorOptions();
-        var rng = DefaultRandom.Create(options.Seed);
+        var rng = _random.For(options);
+        var banks = _repo.GetBanks();
 
-        var codes = _repo.GetBankCodes();
-        if (codes.Count == 0) throw new InvalidOperationException("No bank codes available.");
-        var bankCode = options.BankCode ?? codes[rng.Next(codes.Count)];
-
-        bool usePrefix = options.WithPrefix ?? (rng.Next(3) == 0); // ~33% chance of prefix by default
-        var prefix = usePrefix ? GenerateValidNumber(rng, PrefixWeights, 6) : "000000";
-        var account = GenerateValidNumber(rng, AccountWeights, 10);
-
-        return new BankAccount(prefix, account, bankCode);
-    }
-
-    // Generates a zero-padded numeric string of `length` digits where the weighted sum is 0 mod 11.
-    // The last digit (weight = 1) is computed as the check digit.
-    private static string GenerateValidNumber(IRandom rng, int[] weights, int length)
-    {
-        var digits = new int[length];
-        int checkDigit;
-        do
+        Bank? bank;
+        string bankCode;
+        if (options.BankCode is { } requested)
         {
-            for (int i = 0; i < length - 1; i++)
-                digits[i] = rng.Next(10);
-
-            int partial = 0;
-            for (int i = 0; i < length - 1; i++)
-                partial += digits[i] * weights[i];
-
-            // Weight of last position is always 1 in both weight tables, so:
-            // (partial + checkDigit * 1) % 11 == 0  =>  checkDigit = (11 - partial%11) % 11
-            checkDigit = (11 - partial % 11) % 11;
-            // If checkDigit == 10, no single digit satisfies the constraint — regenerate.
-        } while (checkDigit == 10);
-
-        digits[length - 1] = checkDigit;
-        return string.Concat(digits);
-    }
-
-    /// <summary>
-    /// Returns true when both the prefix and account number pass the CZ weighted-checksum rule.
-    /// Accepts local format "prefix-account/bankCode", "account/bankCode", or raw digits.
-    /// </summary>
-    public static bool Validate(string value)
-    {
-        if (string.IsNullOrWhiteSpace(value)) return false;
-
-        // Strip bank code if present
-        var slashIdx = value.IndexOf('/');
-        var withoutBank = slashIdx >= 0 ? value[..slashIdx] : value;
-
-        var dashIdx = withoutBank.IndexOf('-');
-        string prefixStr, accountStr;
-        if (dashIdx >= 0)
-        {
-            prefixStr = withoutBank[..dashIdx].PadLeft(6, '0');
-            accountStr = withoutBank[(dashIdx + 1)..].PadLeft(10, '0');
+            if (requested.Length != 4 || !requested.All(char.IsAsciiDigit))
+                throw new ArgumentException("BankCode must be exactly 4 digits.", nameof(options));
+            bankCode = requested;
+            bank = banks.FirstOrDefault(b => b.Code == requested);
         }
         else
         {
-            prefixStr = "000000";
-            accountStr = withoutBank.PadLeft(10, '0');
+            if (!banks.Any(b => b.Weight > 0)) throw new InvalidOperationException("No bank codes available.");
+            bank = rng.PickWeighted(banks, b => b.Weight);
+            bankCode = bank.Code;
         }
 
-        if (prefixStr.Length > 6 || accountStr.Length > 10) return false;
+        bool usePrefix = options.WithPrefix ?? rng.Chance(0.15);
+        var prefix = usePrefix ? GenerateNumber(rng, 6) : "000000";
+        var account = GenerateNumber(rng, 10);
 
-        return WeightedSum(prefixStr, PrefixWeights) % 11 == 0
-            && WeightedSum(accountStr, AccountWeights) % 11 == 0;
+        return new BankAccount(prefix, account, bankCode) { BankName = bank?.Name, Bic = bank?.Bic };
     }
 
-    private static int WeightedSum(string digits, int[] weights)
+    /// <summary>
+    /// Returns true when <paramref name="value"/> ("prefix-account/bank" or "account/bank") is well-formed and both
+    /// numbers pass the checksum. See <see cref="BankAccount.TryParse"/>.
+    /// </summary>
+    public static bool Validate(string? value) => BankAccount.IsValid(value);
+
+    // A zero-padded number of `length` digits with at least two non-zero digits whose weighted sum is ≡ 0 (mod 11).
+    // Prefixes are kept short (2–6 significant digits) and account numbers long (8–10), as in real life.
+    private static string GenerateNumber(IRandom rng, int length)
     {
-        int sum = 0;
-        int offset = weights.Length - digits.Length;
-        for (int i = 0; i < digits.Length; i++)
-            sum += (digits[i] - '0') * weights[offset + i];
-        return sum;
+        int significant = length == 6 ? rng.Next(2, 7) : rng.Next(8, 11);
+        var digits = new int[length];
+        while (true)
+        {
+            Array.Clear(digits);
+            int sum = 0;
+            for (int i = length - significant; i < length - 1; i++)
+            {
+                digits[i] = i == length - significant ? rng.Next(1, 10) : rng.Next(10);
+                sum += digits[i] * BankAccount.Weight(length, i);
+            }
+
+            int check = (11 - sum % 11) % 11; // last weight is 1
+            if (check == 10) continue;
+            digits[length - 1] = check;
+
+            if (digits.Count(d => d != 0) >= 2) return string.Concat(digits);
+        }
     }
 }

@@ -1,69 +1,49 @@
-# Bank accounts module (`src/Novak.Net.BankAccounts`)
+# Novak.Net.BankAccounts
 
-Status: available.
-
-## Overview
-
-Generates valid Czech bank account numbers following the CNB weighted-checksum rule and produces both local format and IBAN.
-
-### Validation rules
-
-Both the **prefix** (6 digits) and the **account number** (10 digits) must satisfy the weighted checksum:
-
-| Position | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Weight | 6 | 3 | 7 | 9 | 10 | 5 | 8 | 4 | 2 | 1 |
-
-Sum of `digit × weight` (zero-padded, left to right) must be ≡ 0 (mod 11).
-
-### IBAN
-
-Czech IBAN: `CZ` + 2 check digits + bank code (4) + prefix (6) + account (10) = **24 characters**.
-
-## Quick start
+Valid Czech bank account numbers, with IBAN and BIC, based on the official Czech National Bank list of bank codes.
 
 ```csharp
 using Novak.Net.BankAccounts;
-using Novak.Net.BankAccounts.Data;
+using Novak.Net.BankAccounts.Models;
 using Novak.Net.BankAccounts.Options;
 
-var generator = new BankAccountGenerator(new EmbeddedBankAccountDataRepository());
+var generator = new BankAccountGenerator();
 
-var account = generator.GenerateBankAccount(new BankAccountGeneratorOptions
-{
-    Seed       = 42,
-    WithPrefix = false,
-});
+var account = generator.GenerateBankAccount();
+account.ToString();               // "9540064479/0800"
+account.BankName;                 // "Česká spořitelna, a.s."
+account.Bic;                      // "GIBACZPX"
+account.ToIban();                 // "CZ3308000000009540064479"
+account.ToIban(spaced: true);     // "CZ33 0800 0000 0095 4006 4479"
 
-Console.WriteLine(account);          // e.g. 2253325080/6700
-Console.WriteLine(account.ToIban()); // e.g. CZ4767000000002253325080
+generator.GenerateBankAccount(new() { BankCode = "2010", WithPrefix = true }); // "954007-5472535751/2010"
+
+BankAccountGenerator.Validate("19-2000145399/0800");          // true
+BankAccount.TryParse("19-2000145399/0800", out var parsed);  // parsed.ToIban() == "CZ6508000000192000145399"
 ```
+
+## Rules
+
+These rules follow CNB Decree 169/2011:
+
+- The prefix (*předčíslí*, up to 6 digits) and the account number (2–10 digits) are each zero-padded. Each must have
+  a weighted digit sum divisible by 11. The weights are `6, 3, 7, 9, 10, 5, 8, 4, 2, 1`, and the prefix uses the last
+  six.
+- The account number must have at least two non-zero digits.
+- A Czech IBAN is `CZ` + 2 check digits + bank code (4) + prefix (6) + account number (10), 24 characters in total.
+
+## Banks
+
+The bundled list is the CNB code list as of October 2026, with names and BICs. Random picks are weighted by each bank's
+approximate share of personal accounts: Česká spořitelna, ČSOB, Komerční banka, Fio, Raiffeisenbank, MONETA, Air Bank,
+mBank, UniCredit and others. Codes that aren't retail banks are valid but never picked at random. These include the
+CNB, building societies, payment institutions and banks in liquidation. You can still request any of them with
+`BankCode`.
 
 ## Options (`BankAccountGeneratorOptions`)
 
-| Property | Type | Default | Description |
-|---|---|---|---|
-| `Seed` | `int?` | `null` | Fixed seed for deterministic output |
-| `BankCode` | `string?` | `null` | Override bank code (4 digits, e.g. `"0800"`). Picked randomly when null. |
-| `WithPrefix` | `bool?` | `null` | `true` = always include non-zero prefix; `false` = no prefix; `null` = random (~33 % chance) |
-
-## Model (`BankAccount`)
-
-| Property / Method | Description |
-|---|---|
-| `Prefix` | Zero-padded 6-digit prefix string (e.g. `"000019"`) |
-| `AccountNumber` | Zero-padded 10-digit account string |
-| `BankCode` | 4-digit bank code string |
-| `ToLocalFormat()` / `ToString()` | Czech local format, e.g. `"19-2000145399/0800"` |
-| `ToIban()` | Czech IBAN, e.g. `"CZ6508000000192000145399"` |
-
-## Validation
-
-```csharp
-bool ok  = BankAccountGenerator.Validate("19-2000145399/0800"); // true
-bool bad = BankAccountGenerator.Validate("2000145398/0800");    // false
-```
-
-## Embedded bank codes
-
-The module ships with a curated list of active Czech bank codes sourced from the CNB register, covering all major retail and savings banks (e.g. 0800 Česká spořitelna, 0100 Komerční banka, 5500 Raiffeisenbank, 3030 Air Bank, and 30+ others). Override with `BankCode` to pin a specific bank.
+| Property | Default | Description |
+|---|---|---|
+| `Seed` | `null` | Fixed seed for this call |
+| `BankCode` | `null` | 4-digit bank code. Weighted random when null. |
+| `WithPrefix` | `null` | `true` always adds a prefix, `false` never does, `null` adds one about 15 % of the time |

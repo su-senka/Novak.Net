@@ -1,19 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <Description>Public facade package for Novak.Net Czech synthetic personal data generation.</Description>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Description>Realistic, consistent Czech test data for .NET: people with names, rodné číslo, e-mails, phone numbers, real RÚIAN addresses and valid bank accounts/IBANs.</Description>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="../Novak.Net.Names/Novak.Net.Names.csproj" />
     <ProjectReference Include="../Novak.Net.Emails/Novak.Net.Emails.csproj" />
     <ProjectReference Include="../Novak.Net.PhoneNumbers/Novak.Net.PhoneNumbers.csproj" />
+    <ProjectReference Include="../Novak.Net.Addresses/Novak.Net.Addresses.csproj" />
     <ProjectReference Include="../Novak.Net.RodneCislo/Novak.Net.RodneCislo.csproj" />
     <ProjectReference Include="../Novak.Net.BankAccounts/Novak.Net.BankAccounts.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="../../README.md" Pack="true" PackagePath="/" Link="README.md" />
+    <None Include="../../README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 </Project>

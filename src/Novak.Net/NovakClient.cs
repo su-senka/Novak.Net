@@ -1,34 +1,57 @@
+using Novak.Net.Addresses;
 using Novak.Net.BankAccounts;
-using Novak.Net.BankAccounts.Data;
+using Novak.Net.Common.Randomization;
 using Novak.Net.Emails;
-using Novak.Net.Emails.Data;
 using Novak.Net.Names;
+using Novak.Net.People;
 using Novak.Net.PhoneNumbers;
-using Novak.Net.PhoneNumbers.Data;
 using Novak.Net.RodneCislo;
 
 namespace Novak.Net;
 
+/// <summary>
+/// Creates and wires all generators with the built-in Czech data. Thread-safe.
+/// </summary>
+/// <example>
+/// <code>
+/// var faker = new NovakClient(seed: 42);          // same sequence of values on every run
+/// var person = faker.People.GeneratePerson();
+/// var iban = faker.BankAccounts.GenerateBankAccount().ToIban();
+/// </code>
+/// </example>
 public class NovakClient : INovakClient
 {
-    private readonly INameGenerator _nameGenerator;
-    private readonly IEmailGenerator _emailGenerator;
-    private readonly IPhoneNumberGenerator _phoneNumberGenerator;
-    private readonly IRodneCisloGenerator _rodneCisloGenerator;
-    private readonly IBankAccountGenerator _bankAccountGenerator;
-
-    public NovakClient()
+    /// <summary>Creates a client with an unseeded random source.</summary>
+    public NovakClient() : this((IRandom?)null)
     {
-        _nameGenerator = new NameGenerator(new DataSource());
-        _emailGenerator = new EmailGenerator(new EmbeddedEmailDataRepository());
-        _phoneNumberGenerator = new PhoneNumberGenerator(new EmbeddedPhoneNumberDataRepository());
-        _rodneCisloGenerator = new RodneCisloGenerator();
-        _bankAccountGenerator = new BankAccountGenerator(new EmbeddedBankAccountDataRepository());
     }
 
-    public INameGenerator Names => _nameGenerator;
-    public IEmailGenerator Emails => _emailGenerator;
-    public IPhoneNumberGenerator PhoneNumbers => _phoneNumberGenerator;
-    public IRodneCisloGenerator RodneCislo => _rodneCisloGenerator;
-    public IBankAccountGenerator BankAccounts => _bankAccountGenerator;
+    /// <summary>
+    /// Creates a client whose generators share one random sequence. With a seed, the sequence of generated
+    /// values is reproducible (a per-call <c>Seed</c> option still overrides it for that call).
+    /// </summary>
+    public NovakClient(int? seed) : this(seed.HasValue ? DefaultRandom.Create(seed) : null)
+    {
+    }
+
+    /// <summary>Creates a client that draws from a custom random source.</summary>
+    public NovakClient(IRandom? random)
+    {
+        var rng = random ?? DefaultRandom.Shared;
+        Names = new NameGenerator(random: rng);
+        Emails = new EmailGenerator(names: Names, random: rng);
+        PhoneNumbers = new PhoneNumberGenerator(random: rng);
+        Addresses = new AddressGenerator(random: rng);
+        RodneCislo = new RodneCisloGenerator(rng);
+        BankAccounts = new BankAccountGenerator(random: rng);
+        People = new PersonGenerator(Names, Emails, PhoneNumbers, Addresses, RodneCislo, BankAccounts, rng);
+    }
+
+    public INameGenerator Names { get; }
+    public IEmailGenerator Emails { get; }
+    public IPhoneNumberGenerator PhoneNumbers { get; }
+    public IAddressGenerator Addresses { get; }
+    public IRodneCisloGenerator RodneCislo { get; }
+    public IBankAccountGenerator BankAccounts { get; }
+    public IPersonGenerator People { get; }
 }
